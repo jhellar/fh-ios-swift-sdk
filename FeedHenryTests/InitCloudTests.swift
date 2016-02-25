@@ -38,12 +38,12 @@ class InitCloudTests: XCTestCase {
         let config = Config(propertiesFile: "fhconfig", bundle: NSBundle(forClass: self.dynamicType))
         config.properties.removeValueForKey("appid")
         // when
-        FH.setup(config, completionHandler: {(inner: () throws -> Response) -> Void in
+        FH.setup(config, completionHandler: {(result: Result<Response>) -> Void in
             defer {
                 getExpectation.fulfill()
             }
             do {
-                let _ = try inner()
+                let _ = try result.resolve()
             } catch let error {
                 // then
                 XCTAssertNotNil((error as NSError).userInfo.description)
@@ -52,7 +52,7 @@ class InitCloudTests: XCTestCase {
             }
             XCTAssertTrue(false, "This test sgould failed because no valid fhconfig file was provided")
         })
-        waitForExpectationsWithTimeout(100, handler: nil)
+        waitForExpectationsWithTimeout(10, handler: nil)
     }
 
     // TODO mock this test
@@ -63,11 +63,11 @@ class InitCloudTests: XCTestCase {
         let config = Config(propertiesFile: "fhconfig", bundle: NSBundle(forClass: self.dynamicType))
         XCTAssertNotNil(config.properties.count == 5)
         // when
-        FH.setup(config, completionHandler: { (inner: () throws -> Response) -> Void in
+        FH.setup(config, completionHandler: { (result: Result<Response>) -> Void in
             defer { getExpectation.fulfill()}
             do {
-                let result = try inner()
-                print("initialized OK \(result)")
+                let response = try result.resolve()
+                print("initialized OK \(response)")
                 XCTAssertNotNil(FH.props)
                 XCTAssertTrue(FH.props?.cloudProps.count == 6)
                // XCTAssertTrue(FH.props?.cloudProps["apptitle"] as! String == "Native")
@@ -106,15 +106,15 @@ class InitCloudTests: XCTestCase {
         XCTAssertNotNil(config.properties.count == 5)
 
         // when
-        FH.setup(config, completionHandler: { (inner: () throws -> Response) -> Void in
+        FH.setup(config, completionHandler: { (result: Result<Response>) -> Void in
             do {
-                let result = try inner()
-                FH.performCloudRequest("/hello",  method: "POST", headers: nil, args: nil, config: config, completionHandler: { (inner: () throws -> Response) -> Void in
+                let response = try result.resolve()
+                FH.performCloudRequest("/hello",  method: "POST", headers: nil, args: nil, config: config, completionHandler: { (result: Result<Response>) -> Void in
                     defer {
                         getExpectation.fulfill()
                     }
                     do {
-                        let result = try inner()
+                        let result = try result.resolve()
                     } catch _ {
                     }
                 })

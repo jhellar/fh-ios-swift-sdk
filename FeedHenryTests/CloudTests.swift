@@ -27,11 +27,11 @@ class CloudTests: XCTestCase {
         config = Config(propertiesFile: "fhconfig", bundle: NSBundle(forClass: self.dynamicType))
         
         // when
-        FH.setup(config!, completionHandler: { (inner: () throws -> Response) -> Void in
+        FH.setup(config!, completionHandler: { (result: Result<Response>) -> Void in
             defer { getExpectation.fulfill()}
             do {
-                let result = try inner()
-                print("initialized OK \(result)")
+                let response = try result.resolve()
+                print("initialized OK \(response)")
             } catch _ {}
         })
         waitForExpectationsWithTimeout(10, handler: nil)
@@ -73,12 +73,12 @@ class CloudTests: XCTestCase {
         // given a test config file
         let getExpectation = expectationWithDescription("FH successful")
         
-        FH.performCloudRequest("/hello",  method: "POST", headers: nil, args: nil, config: config!, completionHandler: { (inner: () throws -> Response) -> Void in
+        FH.performCloudRequest("/hello",  method: "POST", headers: nil, args: nil, config: config!, completionHandler: { (result: Result<Response>) -> Void in
             defer {
                 getExpectation.fulfill()
             }
             do {
-                let result = try inner()
+                let response = try result.resolve()
             } catch let error {
                 print("error::::\(error)")
                 XCTAssertTrue(false)
